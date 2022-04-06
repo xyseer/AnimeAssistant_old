@@ -77,7 +77,7 @@ class DBFailedOpenException(Exception):
 
 
 if __name__ == "__main__":
-    a = AnimeDataBase("./test.db")
+    a = AnimeDataBase("./test.sqlite")
     print(a.creatDB())
     print(a.isTableExists("nameTable"), a.isTableExists("metadataTable"), a.isTableExists(
         "downloadTable"), a.isTableExists("subscriptionTable"), a.isTableExists("categoryMap"))
