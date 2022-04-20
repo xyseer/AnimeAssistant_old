@@ -1,4 +1,7 @@
-# *-encoding:utf8-*
+# -*-coding:utf-8-*-
+# @author xy
+# @func a basic database interface declare
+
 import sys
 from PyQt5.QtSql import QSqlQuery, QSqlDatabase
 from PyQt5.QtCore import *
