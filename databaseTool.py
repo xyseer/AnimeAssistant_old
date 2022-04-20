@@ -90,6 +90,7 @@ class ProcessingNameTable:
         with the same name will be all deleted. If you are sure you need to do so, you
         can delete them by using the one for multi-deleting.
     '''
+
     def deleteFromNameTableByID(self, table_id: int = -1) -> int:
         if table_id > 0:
             sql = "DELETE FROM nameTable WHERE id=" + str(table_id) + " ;"
@@ -101,13 +102,22 @@ class ProcessingNameTable:
         else:
             return 0
 
+    # Part 4: UPDATE
+    def update(self, table_id: int, new_name: str) -> bool:
+        sql = "UPDATE nameTable set name='" + new_name + "' where id=" + str(table_id) + " ;"
+        self.processingDB(sql)
+        return self.isInNameTable(new_name, table_id)
+
 
 if __name__ == "__main__":
     a = AnimeDataBase("./test.sqlite")
     b = ProcessingNameTable(a)
-    print(b.writeDB("Slime"))
-    print(b.getSearchResult("Slime"))
-    # print(b.getLastValidID())
-    input()
-    print(b.deleteFromNameTableByResult(b.getSearchResult("Slime")))
+    # print(b.writeDB("Slime"))
+    # print(b.writeDB("Slime"))
+    # print(b.getSearchResult("Slime"))
+    # # print(b.getLastValidID())
+    # print("update", b.update(2, "aha"))
+    # print(b.deleteFromNameTableByResult(b.getSearchResult("Slime")))
+    # for i in range(0,50):
+    #     b.deleteFromNameTableByResult(b.getSearchResult(table_id=i))
     print(b.getResultFromQuery(b.processingDB("select * from nameTable")))
