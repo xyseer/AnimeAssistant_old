@@ -26,8 +26,8 @@ class AnimeDataBase:
             return False
         else:
             query.exec("select * from sqlite_master where type = 'table'; ")
-            while(query.next()):
-                query.exec("drop table "+query.value(0))
+            while (query.next()):
+                query.exec("drop table " + query.value(0))
         # create an id-name Table for basic usage
         query.exec("create table nameTable("
                    "id int primary key,"
@@ -69,10 +69,16 @@ class AnimeDataBase:
         query.exec(sql)
         return query
 
-    def isTableExists(self, tablename: str):
+    def getAllTables(self) -> list:
         query = QSqlQuery(self.db)
-        query.exec("select * from sqlite_master where type = 'table' and name='%s'" % tablename)
-        return query.next()
+        query.exec("select * from sqlite_master where type = 'table';")
+        result = []
+        while query.next():
+            result.append(query.value("name"))
+        return result
+
+    def isTableExists(self, table_name: str) -> bool:
+        return table_name in self.getAllTables()
 
     def __del__(self):
         self.db.close()
