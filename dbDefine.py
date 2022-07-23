@@ -44,7 +44,7 @@ class AnimeDataBase:
         query.exec("create table downloadTable("
                    "id int primary key,"
                    "source text,"
-                   "directory text"
+                   "directory text,"
                    "downloadway character(10)"
                    ")")
         # create subscription table, for subscription layer

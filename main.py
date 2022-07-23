@@ -1,16 +1,26 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from GLOBAL_DEFINE import *
+from schedule_work import ScheduleWork
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def main():
+    try:
+        app_init()
+    except Exception as e:
+        print(e)
+        exit(-1)
+    ss = ScheduleWork(DEFAULT_CORE_QUANTITY)
+    print(datetime.now())
+    pass
+    try:
+        ss.main_schedule()
+        journal_write("================MAIN PROCESS UNEXPECTED EXIT=================")
+    except KeyboardInterrupt:
+        journal_write("================MAIN PROCESS TERMINATE=================")
+        pass
+    except InterruptedError:
+        journal_write("================MAIN PROCESS TERMINATE=================")
+        pass
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+if __name__ == "__main__":
+    main()
