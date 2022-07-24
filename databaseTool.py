@@ -216,16 +216,18 @@ class ProcessingDownloadTable:
             result.append({"id": int(query.value("id")),
                            "source": str(query.value("source")),
                            "directory": str(query.value("directory")),
-                           "downloadway": str(query.value("downloadway"))})
+                           "downloadway": str(query.value("downloadway")),
+                           "filter": str(query.value("filter"))
+                           })
         return result
 
     # Part 1: ADD
 
-    def writeDB(self, table_id: int, source: str, directory: str, downloadway: str) -> bool:
+    def writeDB(self, table_id: int, source: str, directory: str, downloadway: str, filter_name: str) -> bool:
         if table_id <= 0:
             return False
-        sql = f"INSERT INTO downloadTable (id,source,directory,downloadway) " \
-              f"VALUES ({table_id},'{source}','{directory}','{downloadway}') ;"
+        sql = f"INSERT INTO downloadTable (id,source,directory,downloadway,filter) " \
+              f"VALUES ({table_id},'{source}','{directory}','{downloadway}','{filter_name}') ;"
         self.processingDB(sql)
         return self.isInDownloadTable(table_id)
 
@@ -280,7 +282,8 @@ class ProcessingDownloadTable:
             return 0
 
     # Part 4: UPDATE
-    def update(self, table_id: int, source: str = "", directory: str = "", downloadway: str = "") -> bool:
+    def update(self, table_id: int, source: str = "", directory: str = "", downloadway: str = "",
+               filter_name: str = "") -> bool:
         if source:
             sql = f"UPDATE downloadTable set source='{source}' where id={table_id} ;"
             self.processingDB(sql)
@@ -289,6 +292,9 @@ class ProcessingDownloadTable:
             self.processingDB(sql)
         if downloadway:
             sql = f"UPDATE downloadTable set downloadway='{downloadway}' where id={table_id} ;"
+            self.processingDB(sql)
+        if filter_name:
+            sql = f"UPDATE downloadTable set filter='{filter_name}' where id={table_id} ;"
             self.processingDB(sql)
         return self.isInDownloadTable(table_id)
 
@@ -316,21 +322,22 @@ class ProcessingSubscriptionTable:
                            "lastUpdateEP": int(query.value("lastUpdateEP")),
                            "nextUpdateTime": datetime.strptime(str(query.value("nextUpdateTime")), DB_TIME_FORMAT),
                            "nextUpdateEP": int(query.value("nextUpdateEP")),
-                           "span": int(query.value("span"))
+                           "span": int(query.value("span")),
+                           "type": str(query.value("type"))
                            })
         return result
 
     # Part 1: ADD
 
     def writeDB(self, table_id: int, starttime: datetime, totalEpisodes: int, lastUpdateTime: datetime,
-                lastUpdateEP: int, nextUpdateTime: datetime, nextUpdateEP: int, span: int) -> bool:
+                lastUpdateEP: int, nextUpdateTime: datetime, nextUpdateEP: int, span: int, type_name: str) -> bool:
         if table_id <= 0:
             return False
         sql = f"INSERT INTO subscriptionTable (id,starttime,totalEpisodes,lastUpdateTime,lastUpdateEP,nextUpdateTime," \
-              f"nextUpdateEP,span) " \
+              f"nextUpdateEP,span,type) " \
               f"VALUES ({table_id},'{starttime.strftime(DB_TIME_FORMAT)}',{totalEpisodes}," \
               f"'{lastUpdateTime.strftime(DB_TIME_FORMAT)}',{lastUpdateEP},'{nextUpdateTime.strftime(DB_TIME_FORMAT)}'," \
-              f"{nextUpdateEP},{span}) ; "
+              f"{nextUpdateEP},{span},'{type_name}') ; "
         self.processingDB(sql)
         return self.isInSubscriptionTable(table_id)
 
@@ -518,15 +525,15 @@ class ProcessCategoryMap:
 
 if __name__ == "__main__":
     pass
-    #a = AnimeDataBase("./test.sqlite")
-    #print(ProcessCategoryMap(a).get_columns_name())
-    #b = ProcessingNameTable(a)
+    # a = AnimeDataBase("./test.sqlite")
+    # print(ProcessCategoryMap(a).get_columns_name())
+    # b = ProcessingNameTable(a)
     # print(b.writeDB("Slime"))
     # print(b.writeDB("Slime"))
     # print(b.getSearchResult("Slime"))
     # # print(b.getLastValidID())
     # print("update", b.update(2, "aha"))
-    #print(b.deleteFromNameTableByResult(b.getSearchResult("slime")))
+    # print(b.deleteFromNameTableByResult(b.getSearchResult("slime")))
     # for i in range(0,50):
     #     b.deleteFromNameTableByResult(b.getSearchResult(table_id=i))
     # for name in a.getAllTables():

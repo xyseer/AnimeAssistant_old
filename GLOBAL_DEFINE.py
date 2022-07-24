@@ -20,9 +20,11 @@ JACKETT_API_LINK_LIST = [
 
 ERROR_RETRY_SPAN = 12
 
+FILTER_DICTS = {"default": {"episode": "0", "reject_rules": [], "including_rules": []}}
+
 
 def app_init():
-    global CONFIG_PATH, DB_PATH, ARIA2_JSONRPC_TOKEN, ARIA2_RPC_SERVER, DEFAULT_CORE_QUANTITY, LOG_DIR, JACKETT_API_LINK_LIST, ERROR_RETRY_SPAN
+    global CONFIG_PATH, DB_PATH, ARIA2_JSONRPC_TOKEN, ARIA2_RPC_SERVER, DEFAULT_CORE_QUANTITY, LOG_DIR, JACKETT_API_LINK_LIST, ERROR_RETRY_SPAN,FILTER_DICTS
     paras_json = {}
     if not os.path.exists("/config"):
         os.mkdir("/config")
@@ -44,6 +46,7 @@ def app_init():
                 'LOG_DIR': LOG_DIR,
                 'JACKETT_API_LINK_LIST': JACKETT_API_LINK_LIST,
                 'ERROR_RETRY_SPAN': ERROR_RETRY_SPAN,
+                'FILTER_DICTs': FILTER_DICTS,
             }
             json.dump(paras_json, fp)
     else:
@@ -55,6 +58,7 @@ def app_init():
         LOG_DIR = paras_json.get('LOG_DIR', LOG_DIR)
         JACKETT_API_LINK_LIST = paras_json.get('JACKETT_API_LINK_LIST', JACKETT_API_LINK_LIST)
         ERROR_RETRY_SPAN = paras_json.get('ERROR_RETRY_SPAN', ERROR_RETRY_SPAN)
+        FILTER_DICTS = paras_json.get('FILTER_DICTS', FILTER_DICTS)
 
 
 def journal_write(msg):

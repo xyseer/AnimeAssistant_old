@@ -42,7 +42,8 @@ class AnimeDataBase:
                    "id int primary key,"
                    "source text,"
                    "directory text,"
-                   "downloadway character(10)"
+                   "downloadway character(10),"
+                   "filter text"
                    ")")
         # create subscription table, for subscription layer
         query.exec("create table subscriptionTable("
@@ -53,7 +54,8 @@ class AnimeDataBase:
                    "lastUpdateEP int,"
                    "nextUpdateTime text,"
                    "nextUpdateEP int,"
-                   "span int"
+                   "span int,"
+                   "type text"
                    ")")
         # create category map, for displaying multiple categories
         ### NOTICE: This table need to be updated by specific functions. ###
