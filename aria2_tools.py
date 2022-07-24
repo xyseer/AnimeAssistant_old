@@ -1,8 +1,10 @@
-from GLOBAL_DEFINE import *
+import json
 import random
 import string
-import json
+
 import requests
+
+from GLOBAL_DEFINE import *
 
 
 def send_download_info_to_aria2(result_item, save_dir):

@@ -1,8 +1,9 @@
-import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import Element
-from GLOBAL_DEFINE import *
-import requests
 import re
+import xml.etree.ElementTree as ET
+
+import requests
+
+from GLOBAL_DEFINE import *
 
 
 def get_result_from_jackett(keyword, filter_dict):

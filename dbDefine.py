@@ -2,10 +2,7 @@
 # @author xy
 # @func a basic database interface declare
 
-import sys
 from PyQt5.QtSql import QSqlQuery, QSqlDatabase
-from PyQt5.QtCore import *
-from GLOBAL_DEFINE import *
 
 
 class AnimeDataBase:
@@ -55,7 +52,8 @@ class AnimeDataBase:
                    "lastUpdateTime text,"
                    "lastUpdateEP int,"
                    "nextUpdateTime text,"
-                   "nextUpdateEP int"
+                   "nextUpdateEP int,"
+                   "span int"
                    ")")
         # create category map, for displaying multiple categories
         ### NOTICE: This table need to be updated by specific functions. ###

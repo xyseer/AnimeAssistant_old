@@ -4,12 +4,14 @@
 import json
 import os
 from datetime import datetime
+
 from dbDefine import AnimeDataBase
 
 CONFIG_PATH = "/config/config.json"
 DB_PATH = "/config/XNT.db"
 ARIA2_RPC_SERVER = "http://192.168.5.146:6800/jsonrpc"
 ARIA2_JSONRPC_TOKEN = "QQ2496873241xy"
+DB_TIME_FORMAT = "%Y-%m-%d %H:%M"
 UNIFIED_TIME_FORMAT = "%m-%d %H:%M:%S"
 DEFAULT_CORE_QUANTITY = 4
 LOG_DIR = "./config/logs/"

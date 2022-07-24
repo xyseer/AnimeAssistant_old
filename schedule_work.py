@@ -1,9 +1,9 @@
-import time
-from GLOBAL_DEFINE import *
-from multiprocessing import Pool, Process, Queue
 from datetime import timedelta
-from bind_jackett import get_result_from_jackett
+from multiprocessing import Pool
+
+from GLOBAL_DEFINE import *
 from aria2_tools import send_download_info_to_aria2
+from bind_jackett import get_result_from_jackett
 
 
 class ScheduleWork:
