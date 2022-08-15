@@ -33,7 +33,7 @@ class AnimeDataBase:
         query.exec("create table metadataTable"
                    "("
                    "id int primary key,"
-                   "img blob,"
+                   "img text,"
                    "info text,"
                    "AnimeDBid character(10)"
                    ")")

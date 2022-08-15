@@ -4,18 +4,22 @@
 import json
 import os
 from datetime import datetime
+from random import sample
+import string
 
 from dbDefine import AnimeDataBase
 
 CONFIG_PATH = "/config/config.json"
-DB_PATH = "/config/XNT.db"
+DB_PATH = "./test.sqlite"#"/config/XNT.db"
 ARIA2_RPC_SERVER = "http://192.168.5.146:6800/jsonrpc"
 ARIA2_JSONRPC_TOKEN = "QQ2496873241xy"
 DB_TIME_FORMAT = "%Y-%m-%d %H:%M"
 UNIFIED_TIME_FORMAT = "%m-%d %H:%M:%S"
+HTML_TIME_FORMAT = "%Y-%m-%d\n%H:%M"
+HTML_INPUT_TIME_FORMAT = "%Y-%m-%dT%H:%M"
 DEFAULT_CORE_QUANTITY = 4
 LOG_DIR = "./config/logs/"
-JACKETT_API_LINK_LIST = [
+JACKETT_API_LINK_LIST = ["http://192.168.5.146:9117/api/v2.0/indexers/miobt/results/torznab/api?apikey=52zowbq26u5aoo3oun5u2kt78jiy5qx6&t=search&cat=&q=","http://192.168.5.146:9117/api/v2.0/indexers/mikan/results/torznab/api?apikey=52zowbq26u5aoo3oun5u2kt78jiy5qx6&t=search&cat=&q=",
     "http://192.168.5.146:9117/api/v2.0/indexers/comicat/results/torznab/api?apikey=52zowbq26u5aoo3oun5u2kt78jiy5qx6&t=search&cat=&q="]
 
 ERROR_RETRY_SPAN = 12

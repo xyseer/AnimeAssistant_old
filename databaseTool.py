@@ -337,7 +337,7 @@ class ProcessingSubscriptionTable:
               f"nextUpdateEP,span,type) " \
               f"VALUES ({table_id},'{starttime.strftime(DB_TIME_FORMAT)}',{totalEpisodes}," \
               f"'{lastUpdateTime.strftime(DB_TIME_FORMAT)}',{lastUpdateEP},'{nextUpdateTime.strftime(DB_TIME_FORMAT)}'," \
-              f"{nextUpdateEP},{span},'{type_name}') ; "
+              f"{nextUpdateEP},{span},'{type_name}') ;"
         self.processingDB(sql)
         return self.isInSubscriptionTable(table_id)
 
@@ -525,9 +525,16 @@ class ProcessCategoryMap:
 
 if __name__ == "__main__":
     pass
-    # a = AnimeDataBase("./test.sqlite")
+    a = AnimeDataBase("./test.sqlite")
+    # a.__createDB__()
     # print(ProcessCategoryMap(a).get_columns_name())
-    # b = ProcessingNameTable(a)
+    #ProcessingNameTable(a).writeDB("Slime")
+    id=ProcessingNameTable(a).getSearchResult("Slime")[0].get("id")
+    t=datetime.now()
+    print(ProcessingSubscriptionTable(a).writeDB(id,t,13,t,1,t,2,168,"download"))
+    #print(a.processingDB("INSERT INTO subscriptionTable (id,starttime,totalEpisodes,lastUpdateTime,lastUpdateEP,nextUpdateTime,nextUpdateEP,span,type) VALUES (1,'2022-07-28 08:53',13,'2022-07-28 08:53',1,'2022-07-28 08:53',2,168,'download') ; "))
+    # ProcessingDownloadTable(a).writeDB(id,"jackett.comicat","/Volume1/Download","way_jackett","default")
+    # ProcessingMetaDataTable(a).writeDB(id,"/static/bg.img","just for test.")
     # print(b.writeDB("Slime"))
     # print(b.writeDB("Slime"))
     # print(b.getSearchResult("Slime"))
