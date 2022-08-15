@@ -23,7 +23,8 @@ def get_result_from_jackett(keyword, filter_dict):
                 if resolve_regex_match(title, filter_dict):
                     for e in child.iter("link"):
                         link = e.text
-                    result_list.append({"title": title, "link": link})
+                    if link.startswith("magnet"):
+                        result_list.append({"title": title, "link": link})
     except Exception as e:
         journal_write(str(e))
     finally:
