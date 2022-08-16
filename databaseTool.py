@@ -92,7 +92,7 @@ class ProcessingNameTable:
             for table_name in self.__anime_db__.getAllTables():
                 isEmpty = isEmpty and self.processingDB(
                     "SELECT * FROM %s WHERE id=%s;" % (table_name, str(table_id))).next()
-            if isEmpty:
+            if not isEmpty:
                 sql = "DELETE FROM nameTable WHERE id=" + str(table_id) + " ;"
                 self.processingDB(sql)
             if not self.isInNameTable(table_id=table_id):

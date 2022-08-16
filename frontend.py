@@ -2,13 +2,16 @@
 import flask
 from flask import Flask, request, render_template, redirect
 
+from schedule_work import ScheduleWork
 import schedule_work
+from multiprocessing import Pool
 from GLOBAL_DEFINE import *
 from databaseTool import ProcessingNameTable, ProcessingSubscriptionTable, ProcessingMetaDataTable, \
     ProcessingDownloadTable
 
 app = Flask(__name__, static_folder='static')
-
+CONFIG_PATH, DB_PATH, ARIA2_RPC_SERVER, ARIA2_JSONRPC_TOKEN, DEFAULT_CORE_QUANTITY, LOG_DIR, JACKETT_API_LINK_LIST, ERROR_RETRY_SPAN, FILTER_DICTS = app_init()
+ss=None
 
 @app.route("/user", methods=['GET', 'POST'])
 def login():
@@ -306,8 +309,9 @@ def update_imm():
             schedule_work.run_time_up_work(schedule_work.SubscriptionItem(ProcessingSubscriptionTable(AnimeDataBase(DB_PATH)).getSearchResult(int(request.args.get("id","0")))[0]))
     except Exception as e:
         return f'''<script type="text/javascript">
-                    alert("Error when update:{str(e)};history.back(-1);</script>'''
+                    alert("Error when update:{str(e)}");history.back(-1);</script>'''
     finally:
+        ss.reset=True
         return f'''<script type="text/javascript">history.back(-1);</script>'''
 
 
@@ -324,7 +328,26 @@ def add_item():
         return redirect(f"modify?id={new_id}")
     except Exception as e:
         return f'''<script type="text/javascript">
-                    alert("Error when update:{str(e)};history.back(-1);</script>'''
+                    alert("Error when update:{str(e)}");history.back(-1);</script>'''
+@app.route("/delete",methods=["GET"])
+def del_item():
+    try:
+        if int(request.args.get("id","0"))>0:
+            table_id=int(request.args.get("id","0"))
+            db = AnimeDataBase(DB_PATH)
+            ProcessingMetaDataTable(db).deleteFromMetadataTableByID(table_id)
+            ProcessingSubscriptionTable(db).deleteFromDownloadTableByID(table_id)
+            ProcessingDownloadTable(db).deleteFromDownloadTableByID(table_id)
+            ProcessingNameTable(db).deleteFromNameTableByID(table_id)
+            if ProcessingNameTable(db).isInNameTable(table_id=table_id):
+                return f'''<script type="text/javascript">
+                                    alert("未知原因的删除失败,请重试.");history.back(-1);</script>'''
+        db.__del__()
+        ss.reset=True
+        return redirect(f"all")
+    except Exception as e:
+        return f'''<script type="text/javascript">
+                    alert("Error when update:{str(e)}");history.back(-1);</script>'''
 
 
 
@@ -625,6 +648,7 @@ def submit():
                 except Exception:
                     return '''<script type="text/javascript">
                                                 alert("修改失败: Process Filter Error!");history.back(-1);</script>'''
+            ss.reset=True
     except Exception as e:
         return f'''<script type="text/javascript">
                                                 alert("修改失败: Unexpected Error! {str(e)}");history.back(-1);</script>'''
@@ -632,5 +656,309 @@ def submit():
         return redirect(f"detail?id={id}")
 
 
-if __name__ == '__main__':
-    app.run("127.0.0.1", 12138, True)
+
+@app.route("/log")
+def watch_log():
+    log=""
+    name=""
+    with open(LOG_DIR+"/"+os.listdir(LOG_DIR)[-1],"r") as fp:
+        name+=os.listdir(LOG_DIR)[-1]
+        log+=fp.read()
+    return f'''
+    <!DOCTYPE html >
+<html >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>xy-nas-tools</title>
+<link href="/static/css.css" rel="stylesheet" type="text/css" />
+<style type="text/css">
+
+</style>
+</head>
+
+<body>
+<div class="box">
+<table width="100%" border="0" cellpadding="0" cellspacing="0" class="nav">
+  <tr>
+    <td><h1>xy-nas-tool</h1></td>
+    <td width="100" align="center"><a href="./">主页</a></td>
+    <td width="100" align="center"><a href="haoyou.html">在追番剧</a></td>
+    <td width="100" align="center"><a href="photo.html">设置</a></td>
+    <td width="100" align="center"><a href="rizhi.html">查看日志</a></td>
+    <td width="100" align="center"><a href="yinyue.html">关于</a></td>
+  </tr>
+</table>
+  <table width=80% height="85%" border="0" align="center" class="main">
+  <tr><th height="20px" align="center">{name}</th></tr>
+    <tr>
+      <td align="center"><textarea class="log1" readonly="readonly">{log}</textarea>
+
+      </td>
+    </tr>
+
+  </table>
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" class="nav">
+  <tr>
+    <td align=center><h4>xy-nas-tool V1.0.0.&nbsp&nbsp&nbsp&nbsp&nbsp made by xyseer.</h4></td>
+  </tr>
+</table>
+  </div>
+</body>
+</html>
+'''
+
+
+@app.route("/setting",methods=["GET","POST"])
+def setting():
+    if request.method=="POST":
+        try:
+            global DB_PATH, ARIA2_RPC_SERVER, ARIA2_JSONRPC_TOKEN, DEFAULT_CORE_QUANTITY, LOG_DIR, JACKETT_API_LINK_LIST, ERROR_RETRY_SPAN, FILTER_DICTS
+            DB_PATH = request.form.get("DB_PATH", DB_PATH)
+            ARIA2_RPC_SERVER = request.form.get("ARIA2_RPC_SERVER", ARIA2_RPC_SERVER)
+            ARIA2_JSONRPC_TOKEN = request.form.get("ARIA2_JSONRPC_TOKEN", ARIA2_JSONRPC_TOKEN)
+            DEFAULT_CORE_QUANTITY = request.form.get("DEFAULT_CORE_QUANTITY", DEFAULT_CORE_QUANTITY)
+            LOG_DIR = request.form.get("LOG_DIR", LOG_DIR)
+            if request.form.get("JACKETT_API_LINK_LIST", ""):
+                tmp = request.form.get("JACKETT_API_LINK_LIST", "").split("\n")
+                result_tmp=[]
+                for i in tmp:
+                    i=i.replace("\n", "").replace("\r","").replace("\r","").replace("\r","")
+                    if i:
+                        result_tmp.append(i)
+                JACKETT_API_LINK_LIST = result_tmp
+            DB_PATH = request.form.get("DB_PATH", DB_PATH)
+            if request.form.get("filter_name",""):
+                if request.form.get("filter_name","") not in FILTER_DICTS.keys():
+                    FILTER_DICTS[request.form.get("filter_name","")]={"episode": "0", "reject_rules": [], "including_rules": []}
+            if request.form.get("filter_exclude", ""):
+                tmp = request.form.get("filter_exclude", "").split(";")
+                for i in tmp:
+                    i.replace(";", "")
+                    if not i:
+                        tmp.remove("")
+                if request.form.get("filter_name", ""):
+                    FILTER_DICTS[str(request.form.get("filter_name", ""))]["reject_rules"] = tmp
+            if request.form.get("filter_include", ""):
+                tmp = request.form.get("filter_include", "").split(";")
+                for i in tmp:
+                    i.replace(";", "")
+                    if not i:
+                        tmp.remove("")
+                if request.form.get("filter_name", ""):
+                    FILTER_DICTS[str(request.form.get("filter_name", ""))]["including_rules"] = tmp
+            with open(CONFIG_PATH,"w") as fp:
+
+
+
+                paras_json = {
+                    'CONFIG_PATH': CONFIG_PATH,
+                    'DB_PATH': DB_PATH,
+                    'ARIA2_RPC_SERVER': ARIA2_RPC_SERVER,
+                    'ARIA2_JSONRPC_TOKEN': ARIA2_JSONRPC_TOKEN,
+                    'DEFAULT_CORE_QUANTITY': DEFAULT_CORE_QUANTITY,
+                    'LOG_DIR': LOG_DIR,
+                    'JACKETT_API_LINK_LIST': JACKETT_API_LINK_LIST,
+                    'ERROR_RETRY_SPAN': ERROR_RETRY_SPAN,
+                    'FILTER_DICTS': FILTER_DICTS,
+                }
+                json.dump(paras_json, fp)
+            app_init()
+            return f'''<script type="text/javascript">
+                       alert("设置成功!");history.back(-1);</script>'''
+        except Exception as e:
+            return f'''<script type="text/javascript">
+                        alert("修改失败: Unexpected Error! {str(e)}");history.back(-1);</script>'''
+    else:
+        html= f'''
+            <!DOCTYPE html >
+    <html >
+    <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>xy-nas-tools</title>
+    <link href="static/css.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+    
+    </style>
+    </head>
+    
+    <body>
+    <div class="box">
+    
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" class="nav">
+      <tr>
+        <td><h1>xy-nas-tool</h1></td>
+        <td width="100" align="center"><a href="./">主页</a></td>
+        <td width="100" align="center"><a href="./all">在追番剧</a></td>
+        <td width="100" align="center"><a href="./setting">设置</a></td>
+        <td width="100" align="center"><a href="./log">查看日志</a></td>
+        <td width="100" align="center"><a href="./about">关于</a></td>
+      </tr>
+    </table>
+       <form action="/setting" method="post">
+      <table width=80%  border="1" align="center" cellpadding="1" cellspacing="0" class="main">
+        <tr height="60px">
+        <td width="50%" align="center">CONFIG_PATH</td>
+        <td width="50%" align="center"><input type="text" value="{CONFIG_PATH}" class="text1" name="source" readonly="readonly"></td>
+      </tr>
+        <tr height="60px">
+        <td width="50%" align="center">DB_PATH</td>
+        <td width="50%" align="center"><input type="text" value="{DB_PATH}" class="text1" name="DB_PATH"></td>
+      </tr>
+        <tr height="60px">
+        <td width="50%" align="center">ARIA2_JSONRPC_TOKEN</td>
+        <td width="50%" align="center"><input type="text" value="{ARIA2_JSONRPC_TOKEN}" class="text1" name="ARIA2_JSONRPC_TOKEN"></td>
+      </tr>
+        <tr height="60px">
+        <td width="50%" align="center">DEFAULT_CORE_QUANTITY</td>
+        <td width="50%" align="center"><input type="number" value="{DEFAULT_CORE_QUANTITY}" class="text1" name="DEFAULT_CORE_QUANTITY"></td>
+      </tr>
+        <tr height="60px">
+        <td width="50%" align="center">LOG_DIR</td>
+        <td width="50%" align="center"><input type="text" value="{LOG_DIR}" class="text1" name="LOG_DIR"></td>
+      </tr>
+        <tr height="150px">
+        <td width="50%" align="center">JACKETT_API_LINK_LIST</td><td width="50%" align="center"><textarea class="textarea1" name="JACKETT_API_LINK_LIST">'''
+    for i in JACKETT_API_LINK_LIST:
+        html+=i+"&#10&#10"
+    html+=f'''</textarea></td></tr>
+        <tr height="60px">
+        <td width="50%" align="center">ERROR_RETRY_SPAN</td>
+        <td width="50%" align="center"><input type="number" value="{ERROR_RETRY_SPAN}" class="text1" name="ERROR_RETRY_SPAN">h</td>
+      </tr>
+      </table>
+         <table width=80%  border="1" align="center" cellpadding="1" cellspacing="0" class="main">
+        <tr height="60px">
+        <td colspan="2" align="center">过滤条件</td></tr>
+        <tr height="60px"><td width="50%" align="center">选择</td>
+        <td width="50%" align="center">
+          <select class="text1" onchange="filter_select_changed();" id="filter_name">'''
+    for i in FILTER_DICTS.keys():
+        html+=f"<option>{i}</option>"
+    html+='''
+            <option>新建...</option>
+          </select>
+          <script>'''
+    html+="var filter_name_list={};"
+    for i in FILTER_DICTS.keys():
+        html+=f'''filter_name_list["{i}"]={json.dumps(FILTER_DICTS.get(i),ensure_ascii=False)};'''
+    html+='''
+            function filter_select_changed(){
+                var source = document.getElementById("filter_name");
+                var name = document.getElementById("filter_name_edited");
+                var exclude = document.getElementById("filter_exclude");
+                var include = document.getElementById("filter_include");
+                var display_name = source.options[source.selectedIndex].value
+                if (display_name=="新建..."){
+                name.setAttribute("value","");
+                exclude.setAttribute("value","");
+                include.setAttribute("value","");}
+                else{
+                name.setAttribute("value",display_name);
+                var exclude_result=new String(filter_name_list[source.options[source.selectedIndex].value]["reject_rules"])
+                var include_result=new String(filter_name_list[source.options[source.selectedIndex].value]["including_rules"])
+                exclude.setAttribute("value",exclude_result.replaceAll(",",";"));
+                include.setAttribute("value",include_result.replaceAll(",",";"));}
+    
+    
+            }
+          </script>
+        </td>
+      </tr>
+           <tr height="60px">
+        <td width="50%" align="center">规则名称</td>
+        <td width="50%" align="center"><input type="text" value="default" class="text1" name="filter_name" id="filter_name_edited"></td>
+      </tr>
+        <tr height="60px">
+        <td width="50%" align="center">排除规则(正则,用;分隔)</td>
+        <td width="50%" align="center"><input type="text" value="" class="text1" name="filter_exclude" id="filter_exclude"></td>
+      </tr>
+           <tr height="60px">
+        <td width="50%" align="center">包含规则(正则,用;分隔)</td>
+        <td width="50%" align="center"><input type="text" value="" class="text1" name="filter_include" id="filter_include"></td>
+      </tr>
+      </table>
+    
+      <table width="100%" height="80" border="0" cellpadding="0" cellspacing="0" class="buttons">
+      <tr>
+        <td  align="right">
+          <button class="button2" onclick="javascript :history.back(-1);">返回</button>
+          <button class="button1" type="submit">提交</button>
+        </td>
+      </tr>
+    </table>
+    
+      <table width="100%" border="0" cellpadding="0" cellspacing="0" class="nav">
+      <tr>
+        <td align=center><h4>xy-nas-tool V1.0.0.&nbsp&nbsp&nbsp&nbsp&nbsp made by xyseer.</h4></td>
+      </tr>
+    </table>
+    </form>
+      </div>
+    </body>
+    </html>
+        '''
+    return html
+
+
+@app.route("/about")
+def about():
+    return '''<!DOCTYPE html >
+<html >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>xy-nas-tools</title>
+<link href="/static/css.css" rel="stylesheet" type="text/css" />
+<style type="text/css">
+
+</style>
+</head>
+
+<body>
+<div class="box">
+<table width="100%" border="0" cellpadding="0" cellspacing="0" class="nav">
+  <tr>
+    <td><h1>xy-nas-tool</h1></td>
+    <td width="100" align="center"><a href="./">主页</a></td>
+    <td width="100" align="center"><a href="haoyou.html">在追番剧</a></td>
+    <td width="100" align="center"><a href="photo.html">设置</a></td>
+    <td width="100" align="center"><a href="rizhi.html">查看日志</a></td>
+    <td width="100" align="center"><a href="yinyue.html">关于</a></td>
+  </tr>
+</table>
+<table width=80% border="1" height="85%" align="center" cellpadding="1" cellspacing="0" class="main">
+  <tr height=300px><td><textarea class="about" readonly="readonly" text-align="center">&#10&#10Thanks for using xy-nas-tool!&#10 xy-nas-tool  made by xy.&#10Github  @xyseer&#10Docker  @xyseer &#10 If you have problem while using this, please let me know on the Github Project.&#10 Enjoy & have fun!</textarea></td></tr>
+  <tr height="80%"><td width="80%"><video width="100%" align="center" src="/static/about.mp4" autoplay="autoplay" controls="controls"></video></td></tr>
+
+</table>
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" class="nav">
+  <tr>
+    <td align=center><h4>xy-nas-tool V1.0.0.&nbsp&nbsp&nbsp&nbsp&nbsp made by xyseer.</h4></td>
+  </tr>
+</table>
+  </div>
+</body>
+</html>
+
+
+'''
+
+
+
+def main():
+    try:
+        global ss
+        CONFIG_PATH, DB_PATH, ARIA2_JSONRPC_TOKEN, ARIA2_RPC_SERVER, DEFAULT_CORE_QUANTITY, LOG_DIR, JACKETT_API_LINK_LIST, ERROR_RETRY_SPAN,FILTER_DICTS=app_init()
+        ss = ScheduleWork(DEFAULT_CORE_QUANTITY)
+        pool=Pool(DEFAULT_CORE_QUANTITY)
+        pool.map(ss.main_schedule(),[])
+        app.run("127.0.0.1", 12138, True)
+        journal_write("================MAIN PROCESS UNEXPECTED EXIT=================")
+    except KeyboardInterrupt:
+        journal_write("================MAIN PROCESS TERMINATE=================")
+        pass
+    except InterruptedError:
+        journal_write("================MAIN PROCESS TERMINATE=================")
+        pass
+    except Exception as e:
+        print(e)
+        exit(-1)

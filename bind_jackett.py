@@ -7,6 +7,7 @@ from GLOBAL_DEFINE import *
 
 
 def get_result_from_jackett(keyword, filter_dict):
+    CONFIG_PATH, DB_PATH, ARIA2_RPC_SERVER, ARIA2_JSONRPC_TOKEN, DEFAULT_CORE_QUANTITY, LOG_DIR, JACKETT_API_LINK_LIST, ERROR_RETRY_SPAN, FILTER_DICTS=app_init()
     result_list = []
     try:
         for api_url in JACKETT_API_LINK_LIST:

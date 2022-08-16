@@ -174,3 +174,61 @@ a:active {
 	color: #AD5A5A;
 }
 
+.log1{
+    width:95%;
+    height:95%;
+    resize:none;
+    background:transparent;
+    white-space:pre-wrap;
+    box-sizing:border-box;
+    border:1px solid #ccc;
+    text-align:left;
+    padding:5px;
+    border-radius:10px;
+    font-size:14px;
+    font- family:"Helvetica Neue","Luxi Sans","DejaVu Sans",Tahoma,"Hiragino Sans GB","Microsoft Yahei",sans-serif;
+}
+
+.log1:hover{
+    background:white;
+}
+
+.textarea1{
+    width:95%;
+    height:150px;
+    resize:none;
+    background:transparent;
+    white-space:pre-wrap;
+    box-sizing:border-box;
+    border:1px solid #ccc;
+    text-align:left;
+    padding:5px;
+    border-radius:10px;
+    font-size:14px;
+    font- family:"Helvetica Neue","Luxi Sans","DejaVu Sans",Tahoma,"Hiragino Sans GB","Microsoft Yahei",sans-serif;
+}
+
+.textarea1:hover{
+    background:white;
+}
+
+.about{
+    width:100%;
+    height:100%;
+    resize:none;
+    background:transparent;
+    white-space:pre-wrap;
+    box-sizing:border-box;
+    border:1px solid #ccc;
+    text-align:center;
+    padding:5px;
+    border-radius:10px;
+    font-size:18px;
+    line-height:2;
+    color:blue;
+    font- family:"Helvetica Neue","Luxi Sans","DejaVu Sans","Tahoma","Hiragino Sans GB","Microsoft Yahei","sans-serif";
+}
+
+.textarea1:hover{
+    ;
+}
