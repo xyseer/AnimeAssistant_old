@@ -1,4 +1,6 @@
 # -*- coding:utf-8 -*-
+import multiprocessing
+
 import flask
 from flask import Flask, request, render_template, redirect
 
@@ -680,13 +682,13 @@ def watch_log():
 <div class="box">
 <table width="100%" border="0" cellpadding="0" cellspacing="0" class="nav">
   <tr>
-    <td><h1>xy-nas-tool</h1></td>
-    <td width="100" align="center"><a href="./">主页</a></td>
-    <td width="100" align="center"><a href="haoyou.html">在追番剧</a></td>
-    <td width="100" align="center"><a href="photo.html">设置</a></td>
-    <td width="100" align="center"><a href="rizhi.html">查看日志</a></td>
-    <td width="100" align="center"><a href="yinyue.html">关于</a></td>
-  </tr>
+        <td><h1>xy-nas-tool</h1></td>
+        <td width="100" align="center"><a href="./">主页</a></td>
+        <td width="100" align="center"><a href="./all">在追番剧</a></td>
+        <td width="100" align="center"><a href="./setting">设置</a></td>
+        <td width="100" align="center"><a href="./log">查看日志</a></td>
+        <td width="100" align="center"><a href="./about">关于</a></td>
+      </tr>
 </table>
   <table width=80% height="85%" border="0" align="center" class="main">
   <tr><th height="20px" align="center">{name}</th></tr>
@@ -917,13 +919,13 @@ def about():
 <div class="box">
 <table width="100%" border="0" cellpadding="0" cellspacing="0" class="nav">
   <tr>
-    <td><h1>xy-nas-tool</h1></td>
-    <td width="100" align="center"><a href="./">主页</a></td>
-    <td width="100" align="center"><a href="haoyou.html">在追番剧</a></td>
-    <td width="100" align="center"><a href="photo.html">设置</a></td>
-    <td width="100" align="center"><a href="rizhi.html">查看日志</a></td>
-    <td width="100" align="center"><a href="yinyue.html">关于</a></td>
-  </tr>
+        <td><h1>xy-nas-tool</h1></td>
+        <td width="100" align="center"><a href="./">主页</a></td>
+        <td width="100" align="center"><a href="./all">在追番剧</a></td>
+        <td width="100" align="center"><a href="./setting">设置</a></td>
+        <td width="100" align="center"><a href="./log">查看日志</a></td>
+        <td width="100" align="center"><a href="./about">关于</a></td>
+      </tr>
 </table>
 <table width=80% border="1" height="85%" align="center" cellpadding="1" cellspacing="0" class="main">
   <tr height=300px><td><textarea class="about" readonly="readonly" text-align="center">&#10&#10Thanks for using xy-nas-tool!&#10 xy-nas-tool  made by xy.&#10Github  @xyseer&#10Docker  @xyseer &#10 If you have problem while using this, please let me know on the Github Project.&#10 Enjoy & have fun!</textarea></td></tr>
@@ -949,9 +951,10 @@ def main():
         global ss
         CONFIG_PATH, DB_PATH, ARIA2_JSONRPC_TOKEN, ARIA2_RPC_SERVER, DEFAULT_CORE_QUANTITY, LOG_DIR, JACKETT_API_LINK_LIST, ERROR_RETRY_SPAN,FILTER_DICTS=app_init()
         ss = ScheduleWork(DEFAULT_CORE_QUANTITY)
-        pool=Pool(DEFAULT_CORE_QUANTITY)
-        pool.map(ss.main_schedule(),[])
-        app.run("127.0.0.1", 12138, True)
+        sw = multiprocessing.Process(target=ss.main_schedule)
+        sw.start()
+        print("ababab")
+        app.run("0.0.0.0", 12138)
         journal_write("================MAIN PROCESS UNEXPECTED EXIT=================")
     except KeyboardInterrupt:
         journal_write("================MAIN PROCESS TERMINATE=================")

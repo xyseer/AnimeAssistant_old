@@ -37,15 +37,15 @@ def run_time_up_work(item: SubscriptionItem):
             result_list = get_result_from_jackett(name, filter_dict=reformat_filter)
             journal_write(
                 f"Find {len(result_list)} matches of '{name}' from jackett. Automatic Select best-matched one to download.")
+            if not result_list:
+                return False
             is_sent = send_download_info_to_aria2(result_list[0], download_info.get('directory', ""))
             if is_sent:
                 journal_write(f"Subscription '{name}' has been successfully push to Aria2.")
                 db = AnimeDataBase(DB_PATH)
-                ProcessingSubscriptionTable(DB_PATH).update(item.id, lastUpdateTime=datetime.now(),
+                ProcessingSubscriptionTable(db).update(item.id, lastUpdateTime=datetime.now(),
                                                             lastUpdateEP=item.origin.get("lastUpdateEP", -2) + 1,
-                                                            nextUpdateTime=item.origin.get("lastUpdateTime",datetime.now()
-                                                                                           + timedelta(hours=0 - item.span))
-                                                                           + timedelta(hours=item.span),
+                                                            nextUpdateTime=item.origin.get("nextUpdateTime",datetime.now())+ timedelta(hours=item.span),
                                                             nextUpdateEP=item.origin.get("lastUpdateEP", -3) + 2)
                 item.nextTime = item.nextTime + timedelta(hours=item.span)
                 db.__del__()
@@ -55,7 +55,7 @@ def run_time_up_work(item: SubscriptionItem):
                 item.nextTime = item.nextTime + timedelta(hours=ERROR_RETRY_SPAN)
                 return False
 
-    pass
+    return False
 
 
 class ScheduleWork:
@@ -69,19 +69,29 @@ class ScheduleWork:
     def main_schedule(self):
         global DB_PATH,ERROR_RETRY_SPAN
         while True:
-            now = datetime.now()
-            if self.reset:
-                print("schedule_reset")
-                db = AnimeDataBase(DB_PATH)
-                self.schedule_list = []
-                for work in ProcessingSubscriptionTable(db).getSearchResult():
-                    self.schedule_list.append(SubscriptionItem(work))
-                self.reset = False
-                break
-            for item in self.schedule_list:
-                if item.next_time <= now:
-                    self.process_pool.map(run_time_up_work,[(item)])
-            time.sleep(ERROR_RETRY_SPAN*3600)
+            try:
+                journal_write("Checking new contents...")
+                print("Checking new contents...")
+                now = datetime.now()
+                if self.reset:
+                    print("schedule_reset")
+                    db = AnimeDataBase(DB_PATH)
+                    self.schedule_list = []
+                    for work in ProcessingSubscriptionTable(db).getSearchResult():
+                        self.schedule_list.append(SubscriptionItem(work))
+                    self.reset = False
+                    continue
+                for item in self.schedule_list:
+                    if item.nextTime <= now:
+                        run_time_up_work(item)
+                journal_write("Check work Finished")
+                sleep(ERROR_RETRY_SPAN*3600)
+            except Exception as e:
+                raise e
+                journal_write(str(e))
+                print(e)
+        print("unexpected crash.")
+        journal_write("unexpected crashed.")
 
     def __del__(self):
         self.process_pool.close()

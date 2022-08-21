@@ -45,5 +45,5 @@ def resolve_regex_match(title, filter_dict):
 
 
 if __name__ == "__main__":
-    for i in get_result_from_jackett("莉可丽丝", {"episode":"03","reject_rules":["繁体"],"including_rules":["喵萌","简|简体","1080"]}):
+    for i in get_result_from_jackett("Overlord IV", {"episode":"07","reject_rules":["繁体"],"including_rules":["Lilith","1080","CHT"]}):
         print(i)
