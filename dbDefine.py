@@ -16,50 +16,52 @@ class AnimeDataBase:
     def __createDB__(self) -> bool:
         # manipulating current db file
         query = QSqlQuery(self.db)
-        # make db as empty
-        query.exec("SELECT * FROM nameTable;")
-        if query.next():
-            raise DBFailedException("WARNING:THE DB IS NOT EMPTY, EMERGENT THROW!")
-            return False
-        else:
-            query.exec("select * from sqlite_master where type = 'table'; ")
-            while (query.next()):
-                query.exec("drop table " + query.value(0))
-        # create an id-name Table for basic usage
-        query.exec("create table nameTable("
-                   "id int primary key,"
-                   "name varchar(255) not null)")
-        # create metadata table, for display usage
-        query.exec("create table metadataTable"
-                   "("
-                   "id int primary key,"
-                   "img text,"
-                   "info text,"
-                   "AnimeDBid character(10)"
-                   ")")
-        # create download-related table, for downloader layer
-        query.exec("create table downloadTable("
-                   "id int primary key,"
-                   "source text,"
-                   "directory text,"
-                   "downloadway character(10),"
-                   "filter text"
-                   ")")
-        # create subscription table, for subscription layer
-        query.exec("create table subscriptionTable("
-                   "id int primary key,"
-                   "starttime text,"
-                   "totalEpisodes int,"
-                   "lastUpdateTime text,"
-                   "lastUpdateEP int,"
-                   "nextUpdateTime text,"
-                   "nextUpdateEP int,"
-                   "span int,"
-                   "type text"
-                   ")")
-        # create category map, for displaying multiple categories
-        ### NOTICE: This table need to be updated by specific functions. ###
-        query.exec("create table categoryMap(id int primary key)")
+        try:
+            # make db as empty
+            query.exec("SELECT * FROM nameTable;")
+            if query.next():
+                raise DBFailedException("WARNING:THE DB IS NOT EMPTY, EMERGENT THROW!")
+                return False
+            else:
+                query.exec("select * from sqlite_master where type = 'table'; ")
+                while (query.next()):
+                    query.exec("drop table " + query.value(0))
+        finally:
+            # create an id-name Table for basic usage
+            query.exec("create table nameTable("
+                       "id int primary key,"
+                       "name varchar(255) not null)")
+            # create metadata table, for display usage
+            query.exec("create table metadataTable"
+                       "("
+                       "id int primary key,"
+                       "img text,"
+                       "info text,"
+                       "AnimeDBid character(10)"
+                       ")")
+            # create download-related table, for downloader layer
+            query.exec("create table downloadTable("
+                       "id int primary key,"
+                       "source text,"
+                       "directory text,"
+                       "downloadway character(10),"
+                       "filter text"
+                       ")")
+            # create subscription table, for subscription layer
+            query.exec("create table subscriptionTable("
+                       "id int primary key,"
+                       "starttime text,"
+                       "totalEpisodes int,"
+                       "lastUpdateTime text,"
+                       "lastUpdateEP int,"
+                       "nextUpdateTime text,"
+                       "nextUpdateEP int,"
+                       "span int,"
+                       "type text"
+                       ")")
+            # create category map, for displaying multiple categories
+            ### NOTICE: This table need to be updated by specific functions. ###
+            query.exec("create table categoryMap(id int primary key)")
         # check if table was created
         return self.isTableExists("nameTable") and self.isTableExists("metadataTable") and self.isTableExists(
             "downloadTable") and self.isTableExists("subscriptionTable") and self.isTableExists("categoryMap")
